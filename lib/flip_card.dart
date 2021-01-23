@@ -99,6 +99,7 @@ class FlipCardState extends State<FlipCard>
   Animation<double> _backRotation;
 
   bool isFront = true;
+  double backHeight = 0.0;
 
   @override
   void initState() {
@@ -145,8 +146,16 @@ class FlipCardState extends State<FlipCard>
     }
     if (isFront) {
       controller.forward();
+
+      setState(() {
+        backHeight = 300;
+      });
     } else {
       controller.reverse();
+
+      setState(() {
+        backHeight = 0.0;
+      });
     }
 
     setState(() {
@@ -159,8 +168,8 @@ class FlipCardState extends State<FlipCard>
     final child = Stack(
       fit: StackFit.passthrough,
       children: <Widget>[
-        _buildContent(front: true),
-        _buildContent(front: false),
+        _buildContent(front: true, height: null),
+        _buildContent(front: false, height: backHeight),
       ],
     );
 
@@ -175,17 +184,22 @@ class FlipCardState extends State<FlipCard>
     return child;
   }
 
-  Widget _buildContent({@required bool front}) {
+  Widget _buildContent({@required bool front, @required double height}) {
     // pointer events that would reach the backside of the card should be
     // ignored
     return IgnorePointer(
       // absorb the front card when the background is active (!isFront),
       // absorb the background when the front is active
       ignoring: front ? !isFront : isFront,
-      child: AnimationCard(
-        animation: front ? _frontRotation : _backRotation,
-        child: front ? widget.front : widget.back,
-        direction: widget.direction,
+      child: AnimatedContainer(
+        height: height,
+        duration: Duration(seconds: 1),
+        curve: Curves.fastOutSlowIn,
+        child: AnimationCard(
+          animation: front ? _frontRotation : _backRotation,
+          child: front ? widget.front : widget.back,
+          direction: widget.direction,
+        ),
       ),
     );
   }
